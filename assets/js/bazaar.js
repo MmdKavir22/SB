@@ -21,6 +21,7 @@ export function scanBazaar(apiData, cfg, nowMs = Date.now()) {
     const dailyVol = Math.min(p.buyVolWeek || 0, p.sellVolWeek || 0) / 7;
     if (dailyVol * 7 < cfg.minVolume) continue;
     const liquidity = liquidityScore(dailyVol);
+    const hourVol = dailyVol / 24; // estimate from weekly moving volume, not a measured 1h figure
     const strategies = [
       { key: 'A', acq: 'Instant Buy', sell: 'Buy Order (instant sell)', cost: p.offer, rev: p.order, confidence: 'high' },
       // Order strategy uses 0.1 undercut/overcut; execution time and price drift are NOT guaranteed.
@@ -32,7 +33,7 @@ export function scanBazaar(apiData, cfg, nowMs = Date.now()) {
       if (!r) continue;
       out.push({
         id: `bz:${id}:${s.key}`, itemId: id, name: p.name, category: 'Bazaar', acqMethod: s.acq, sellMethod: s.sell,
-        unitCost: s.cost, ...r, capital: r.acquisition, liquidity, dailyVolume: dailyVol,
+        unitCost: s.cost, ...r, capital: r.acquisition, liquidity, dailyVolume: dailyVol, hourVol, coinsPerHour: r.net * hourVol,
         confidence: s.confidence, risk: riskLevel(liquidity, s.confidence), updated, stale, source: 'Hypixel Bazaar API',
         note: s.key === 'B' ? 'Order fills are not guaranteed; spread may move.' : 'Confirmed instant prices.'
       });

@@ -31,3 +31,17 @@ export function scanBits(items, apiData, cfg) {
   }
   return out;
 }
+
+// One row per item with both sell methods side by side. Unavailable items are kept (never silently dropped).
+export function summarizeBits(opps) {
+  const map = new Map();
+  for (const o of opps) {
+    const r = map.get(o.itemId) || { itemId: o.itemId, name: o.name, unavailable: false };
+    if (o.unavailable) { r.unavailable = true; map.set(o.itemId, r); continue; }
+    r.bits = o.bitsCost; r.liquidity = o.liquidity; r.updated = o.updated; r.dailyVolume = o.dailyVolume;
+    if (o.sellMethod === 'Instant Sell') { r.instPrice = o.revenue; r.instNet = o.net; r.instCpb = o.profitPerBit; }
+    else { r.offerPrice = o.revenue; r.offerNet = o.net; r.offerCpb = o.profitPerBit; }
+    map.set(o.itemId, r);
+  }
+  return [...map.values()].map((r) => ({ ...r, bestCpb: r.unavailable ? null : Math.max(r.instCpb ?? -Infinity, r.offerCpb ?? -Infinity) }));
+}

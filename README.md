@@ -18,6 +18,14 @@ Local preview: opening `index.html` by double-click will fail (ES modules need h
 - **Bits**: skyblock.finance has no documented public API and its page is not safely scrapable from a static site, so it is not integrated. The Bits scanner uses your editable list (Settings) with Bazaar sale prices. The three seed entries (Booster Cookie 4800, Kismet Feather 1350, Hyper Catalyst 300 Bits) are from memory: verify them. Bits ROI means coins earned per Bit spent.
 - Hypixel API data is itself cached for about a minute; the app labels data as live only when it was just fetched, cached when reused from its own cache, stale when older than your threshold.
 
+## UI features
+Persian/English toggle (RTL), coin and Bits budget limits (rows above budget are hidden; "Max qty" and "Profit @ max" show what the budget buys, capped at 5% of daily volume, and assume linear profit with no price impact), click-to-sort headers (click again to flip low/high), card and table views for Bazaar and Bits (card layout inspired by skyblock.bz), collapsible menu, and a fixed bottom scrollbar for wide tables on small screens. Bits rows are never hidden by the profit/ROI filters.
+
+Hourly volume and Coins/hour are estimates derived from Hypixel's weekly moving volume, not measured per hour.
+
+## skyblock.bz
+It is Coflnet's site; I found no documented public API for it, so the app does not call it. All prices come from the official Hypixel API. Its FAQ says the Bazaar tax is raised to 2.25% while mayor Aura is active, so check the current tax in-game and set it in Settings; the default here is 1.25%.
+
 ## Fee assumptions (all editable in Settings, verify on wiki.hypixel.net)
 Bazaar sell tax 1.25%. Auction House listing fee 1% (<10M), 2% (10M to 100M), 2.5% (>100M) plus a 1% claim fee capped at 1M. These are defaults, not guarantees; they change with updates and upgrades.
 
