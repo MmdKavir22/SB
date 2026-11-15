@@ -64,13 +64,4 @@ export function maxQuantity({ budget, unitPrice, dailyVolume = Infinity, volumeS
   return Math.max(0, Math.min(byBudget, byVolume, cap));
 }
 
-export function simulate({ coins, buyPrice, sellPrice, quantity, venue = 'bazaar' }, cfg = DEFAULT_CONFIG) {
-  if (!isValidPrice(buyPrice) || !isValidPrice(sellPrice)) return { error: 'Prices must be positive numbers.' };
-  const affordable = Math.floor((coins || 0) / buyPrice);
-  const q = Math.min(quantity > 0 ? Math.floor(quantity) : affordable, affordable);
-  if (q < 1) return { error: 'Not enough coins for one unit.', affordable };
-  const revenue = sellPrice * q;
-  const fees = venue === 'bazaar' ? bazaarSellFee(revenue, cfg) : venue === 'auction' ? ahFee(sellPrice, cfg) * q : 0;
-  const res = calcResult({ acquisition: buyPrice * q, revenue, fees, units: q });
-  return { ...res, quantity: q, affordable, remaining: coins - buyPrice * q };
-}
+export const fmt = (n, d = 0) => Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: d }) : 'n/a';

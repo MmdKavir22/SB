@@ -48,3 +48,21 @@ export function scanAuctions(auctions, cfg, nowMs = Date.now(), updated = nowMs)
   }
   return out;
 }
+
+// Price lookup by item name for Bits flips of Auction House items: median of the 3 lowest BIN prices.
+export function priceIndex(auctions, nowMs = Date.now()) {
+  const idx = new Map(), seen = new Set();
+  for (const a of auctions) {
+    if (!isValidAuction(a, nowMs) || seen.has(a.uuid)) continue; seen.add(a.uuid);
+    const k = normalize(a).name.toLowerCase();
+    if (!idx.has(k)) idx.set(k, []);
+    idx.get(k).push(a.starting_bid);
+  }
+  for (const arr of idx.values()) arr.sort((x, y) => x - y);
+  return idx;
+}
+export function lookupPrice(idx, name) {
+  const arr = idx?.get(String(name).toLowerCase());
+  if (!arr || arr.length < 3) return null;
+  return { ref: median(arr.slice(0, 3)), count: arr.length };
+}

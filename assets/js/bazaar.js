@@ -10,6 +10,10 @@ export function parseProduct(id, p) {
   return { id, name: prettyName(id), offer, order, buyVolWeek: qs.buyMovingWeek, sellVolWeek: qs.sellMovingWeek };
 }
 
+// All four buy/sell combinations. Order prices use a 0.1 coin undercut; fills are NOT guaranteed.
+const BUY = { instant: { label: 'Instant Buy', price: (p) => p.offer }, order: { label: 'Buy Order', price: (p) => p.order + 0.1 } };
+const SELL = { instant: { label: 'Instant Sell', price: (p) => p.order }, offer: { label: 'Sell Offer', price: (p) => p.offer - 0.1 } };
+
 export function scanBazaar(apiData, cfg, nowMs = Date.now()) {
   const out = [], seen = new Set();
   const updated = apiData?.lastUpdated;
@@ -22,20 +26,19 @@ export function scanBazaar(apiData, cfg, nowMs = Date.now()) {
     if (dailyVol * 7 < cfg.minVolume) continue;
     const liquidity = liquidityScore(dailyVol);
     const hourVol = dailyVol / 24; // estimate from weekly moving volume, not a measured 1h figure
-    const strategies = [
-      { key: 'A', acq: 'Instant Buy', sell: 'Buy Order (instant sell)', cost: p.offer, rev: p.order, confidence: 'high' },
-      // Order strategy uses 0.1 undercut/overcut; execution time and price drift are NOT guaranteed.
-      { key: 'B', acq: 'Buy Order', sell: 'Sell Offer', cost: p.order + 0.1, rev: p.offer - 0.1, confidence: 'medium' }
-    ];
-    for (const s of strategies) {
-      if (!(s.rev > 0)) continue;
-      const r = calcResult({ acquisition: s.cost, revenue: s.rev, fees: bazaarSellFee(s.rev, cfg) });
+    for (const [bk, b] of Object.entries(BUY)) for (const [sk, s] of Object.entries(SELL)) {
+      const cost = b.price(p), rev = s.price(p);
+      if (!(rev > 0) || !(cost > 0)) continue;
+      const r = calcResult({ acquisition: cost, revenue: rev, fees: bazaarSellFee(rev, cfg) });
       if (!r) continue;
+      const confidence = bk === 'instant' && sk === 'instant' ? 'high' : 'medium';
       out.push({
-        id: `bz:${id}:${s.key}`, itemId: id, name: p.name, category: 'Bazaar', acqMethod: s.acq, sellMethod: s.sell,
-        unitCost: s.cost, ...r, capital: r.acquisition, liquidity, dailyVolume: dailyVol, hourVol, coinsPerHour: r.net * hourVol,
-        confidence: s.confidence, risk: riskLevel(liquidity, s.confidence), updated, stale, source: 'Hypixel Bazaar API',
-        note: s.key === 'B' ? 'Order fills are not guaranteed; spread may move.' : 'Confirmed instant prices.'
+        id: `bz:${id}:${bk}-${sk}`, itemId: id, name: p.name, category: 'Bazaar', buyMode: bk, sellMode: sk,
+        acqMethod: b.label, sellMethod: s.label, unitCost: cost, ...r, capital: r.acquisition,
+        instBuy: p.offer, instSell: p.order, orderBuy: p.order + 0.1, sellOffer: p.offer - 0.1,
+        liquidity, dailyVolume: dailyVol, hourVol, coinsPerHour: r.net * hourVol,
+        confidence, risk: riskLevel(liquidity, confidence), updated, stale, source: 'Hypixel Bazaar API',
+        note: confidence === 'high' ? 'Both prices are instant prices (confirmed).' : 'Order fills are not guaranteed; the spread may move.'
       });
     }
   }

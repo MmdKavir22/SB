@@ -15,7 +15,7 @@ test('bazaar skips invalid/missing data and never zero-fills', () => {
   assert.deepEqual([...ids], ['GOOD']);
 });
 test('bazaar strategy B profit with fees', () => {
-  const b = scanBazaar(bz, C, now).find((o) => o.id.endsWith(':B'));
+  const b = scanBazaar(bz, C, now).find((o) => o.id.endsWith(':order-offer'));
   const rev = 119.9, cost = 100.1;
   assert.ok(Math.abs(b.net - (rev - cost - rev * 0.0125)) < 1e-9);
 });
@@ -23,7 +23,7 @@ test('bazaar flags stale data', () => {
   assert.equal(scanBazaar(bz, C, now + 10 * 60e3)[0].stale, true);
 });
 test('bits: unknown product is flagged, duplicates ignored', () => {
-  const r = scanBits([{ id: 'good', bits: 10 }, { id: 'GOOD', bits: 10 }, { id: 'NOPE', bits: 5 }, { id: 'X', bits: -1 }], bz, C);
+  const r = scanBits([{ id: 'good', bits: 10, source: 'bazaar' }, { id: 'GOOD', bits: 10, source: 'bazaar' }, { id: 'NOPE', bits: 5, source: 'bazaar' }, { id: 'X', bits: -1 }], bz, C);
   assert.equal(r.filter((o) => o.itemId === 'GOOD').length, 2);
   assert.equal(r.find((o) => o.itemId === 'NOPE').unavailable, true);
   assert.ok(Math.abs(r.find((o) => o.sellMethod === 'Instant Sell').profitPerBit - (100 * 0.9875 - 10) / 10) < 1e-9);

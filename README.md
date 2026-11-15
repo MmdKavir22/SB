@@ -1,36 +1,28 @@
 # SkyBlock Flip Scanner (static)
 
-A 100% static Hypixel SkyBlock flip scanner: HTML, CSS, vanilla JS and Chart.js. No backend, no Python, no Node at runtime. It runs from GitHub Pages and talks directly to Hypixel's public API from your browser.
+A 100% static Hypixel SkyBlock flip scanner: HTML, CSS and vanilla JS. No backend, no Python/Node at runtime. It runs on GitHub Pages and reads Hypixel's public API from the browser.
 
-## Deploy to GitHub Pages (Windows friendly)
-1. Create a GitHub repo named `SkyBlockFlipScanner` and push this folder to the `main` branch (GitHub Desktop works, or `git init`, `git add .`, `git commit`, `git remote add origin ...`, `git push -u origin main`).
-2. In the repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. The workflow in `.github/workflows/deploy.yml` runs the tests and publishes. Your site: `https://USERNAME.github.io/SkyBlockFlipScanner/`.
+## Pages
+Dashboard (status + guide on how profit is calculated), Best Opportunities, Bazaar (choose Buy instant / Buy order and Sell instant / Sell offer), Most traded, Auction House, Bits Shop, Settings, Admin.
 
-Local preview: opening `index.html` by double-click will fail (ES modules need http). Use any static server, e.g. `python -m http.server` (only for local preview) or the VS Code Live Server extension.
+## Deploy
+1. Push to the `main` branch of your repo.
+2. Repo **Settings → Pages → Source: GitHub Actions**. The workflow runs the tests and publishes `index.html`, `assets/` and `config/`.
+3. Local preview needs a static server (ES modules do not work from `file://`), e.g. VS Code Live Server.
+
+## Admin panel (hide/show items, edit the Bits list)
+Open **Admin**, paste a GitHub token that can write to the repo (classic: `repo`; fine-grained: Contents read and write), check owner/repo/branch, log in. Toggle items, edit Bits items, then **Publish to GitHub**: this commits `config/items.json`. Visitors load that file from raw.githubusercontent.com (falling back to the copy on the site), so changes reach them after a few minutes (CDN cache plus a redeploy).
+Security: the token stays in that browser tab (sessionStorage) and is only sent to api.github.com. The real protection is GitHub itself: only a token with push access can change the file. The UI is not a security boundary.
+
+## Data and limits
+- Bazaar and Auctions: public Hypixel endpoints, no key. Whether browsers may read them depends on Hypixel's CORS headers, which I could not test from the build environment. On failure each source shows its error and no data is invented.
+- Hourly volume / Coins per hour are estimates (weekly moving volume ÷ 168). "Most traded" uses the same weekly figures.
+- Auction House scan is large and off by default (Settings). It compares by name, tier, stars and pet level only; enchants, attributes and reforge are not compared.
+- Bits Shop: Bazaar items are priced from the Bazaar; most Bits items are Auction House items and are priced from the median of the 3 lowest BINs (needs the Auction scan). Items marked (?) have a Bits cost not confirmed by several sources: verify in game. skyblock.finance / skyblock.bz have no documented public API, so they are not called.
+- Item images use a community renderer URL template (admin-editable, `{id}` placeholder). It is unverified; when an image fails a letter is shown.
+
+## Fees (Settings, verify in game)
+Bazaar tax default 1.25% (it can change, e.g. with mayor perks). AH: listing fee 1% (<10M), 2% (10M to 100M), 2.5% (>100M) plus 1% claim fee capped at 1M.
 
 ## Tests
-`npm test` (Node 20+, no dependencies). Tests use mocked responses; they cover profit/ROI, Bazaar and AH fees, stale/missing/invalid data, duplicates, Bits math, simulator limits, and API failure/retry. The UI itself has no automated tests.
-
-## Data sources and limitations
-- **Bazaar** `api.hypixel.net/v2/skyblock/bazaar` and **Auctions** `.../auctions`: public, keyless. Whether the browser can read them depends on Hypixel's CORS headers, which I could not verify from the build environment (no network). If requests are blocked, the app shows "Network/CORS error" per source and does not invent data. No private API key is ever used or needed.
-- **Auction House** downloads all pages (a large download); it is off by default (Settings). Item NBT (enchants, attributes, exact reforge) is not decoded, so comparisons group by name, tier, stars and pet level, plus enchanted-book lore. Reforge prefixes are stripped using a built-in list that may miss new reforges. Every AH row is labelled low/medium confidence. Treat as leads, verify in-game.
-- **Bits**: skyblock.finance has no documented public API and its page is not safely scrapable from a static site, so it is not integrated. The Bits scanner uses your editable list (Settings) with Bazaar sale prices. The three seed entries (Booster Cookie 4800, Kismet Feather 1350, Hyper Catalyst 300 Bits) are from memory: verify them. Bits ROI means coins earned per Bit spent.
-- Hypixel API data is itself cached for about a minute; the app labels data as live only when it was just fetched, cached when reused from its own cache, stale when older than your threshold.
-
-## UI features
-Persian/English toggle (RTL), coin and Bits budget limits (rows above budget are hidden; "Max qty" and "Profit @ max" show what the budget buys, capped at 5% of daily volume, and assume linear profit with no price impact), click-to-sort headers (click again to flip low/high), card and table views for Bazaar and Bits (card layout inspired by skyblock.bz), collapsible menu, and a fixed bottom scrollbar for wide tables on small screens. Bits rows are never hidden by the profit/ROI filters.
-
-Hourly volume and Coins/hour are estimates derived from Hypixel's weekly moving volume, not measured per hour.
-
-## skyblock.bz
-It is Coflnet's site; I found no documented public API for it, so the app does not call it. All prices come from the official Hypixel API. Its FAQ says the Bazaar tax is raised to 2.25% while mayor Aura is active, so check the current tax in-game and set it in Settings; the default here is 1.25%.
-
-## Fee assumptions (all editable in Settings, verify on wiki.hypixel.net)
-Bazaar sell tax 1.25%. Auction House listing fee 1% (<10M), 2% (10M to 100M), 2.5% (>100M) plus a 1% claim fee capped at 1M. These are defaults, not guarantees; they change with updates and upgrades.
-
-## Browser storage
-Settings and market history live in LocalStorage of the current browser. They are not synced across devices and vanish if site data is cleared. History only contains scans made while the page was open, and only the top rows per scan.
-
-## Structure
-`index.html`, `assets/css/style.css`, `assets/js/{app,api,bazaar,auction,bits,calculator,simulator,storage,charts,settings}.js`, `tests/`, `.github/workflows/deploy.yml`.
+`npm test` (Node 20+, mocked responses): profit/ROI, fees, stale/missing/invalid data, duplicates, all four Bazaar strategies, Bits (Bazaar and AH sources), filters, sorting, popular items, config loading, admin login/publish (mocked GitHub API), translations. The UI itself has no automated tests.
