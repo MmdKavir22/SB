@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="midnight">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyBlock Flip Scanner</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<aside id="sidebar">
+  <div class="brand">⚡ Flip Scanner</div>
+  <nav>
+    <button data-view="dashboard" class="active" data-i18n="dashboard"></button>
+    <button data-view="ranking" data-i18n="ranking"></button>
+    <button data-view="bazaar" data-i18n="bazaar"></button>
+    <button data-view="popular" data-i18n="popular"></button>
+    <button data-view="auction" data-i18n="auction"></button>
+    <button data-view="bits" data-i18n="bits"></button>
+    <button data-view="settings" data-i18n="settings"></button>
+    <button data-view="admin" data-i18n="admin"></button>
+  </nav>
+  <div class="side-foot">
+    <button id="scanNow" class="primary" data-i18n="scanNow"></button>
+    <button id="toggleAuto" data-i18n="startAuto"></button>
+    <div id="scanState" class="muted small"></div>
+  </div>
+</aside>
+<div id="content">
+<header id="topbar">
+  <button id="sideToggle" aria-label="menu">☰</button>
+  <label class="inl"><span data-i18n="budgetCoins"></span><input id="budCoins" type="number" min="0" placeholder="∞"></label>
+  <label class="inl"><span data-i18n="budgetBits"></span><input id="budBits" type="number" min="0" placeholder="∞"></label>
+  <span class="grow"></span>
+  <button id="langBtn"></button>
+</header>
+<div id="filterBar" class="filterbar" hidden>
+  <input id="fSearch" data-i18n-ph="fSearchPh">
+  <div id="chips" class="chips"></div>
+  <label><span data-i18n="priceMin"></span><input id="fPmin" type="number" min="0"></label>
+  <label><span data-i18n="priceMax"></span><input id="fPmax" type="number" min="0"></label>
+  <label><span data-i18n="minNet"></span><input id="fNet" type="number"></label>
+  <label><span data-i18n="minRoiF"></span><input id="fRoi" type="number"></label>
+  <label><span data-i18n="minHour"></span><input id="fHour" type="number" min="0"></label>
+  <label><span>&nbsp;</span><select id="fRisk"><option value="" data-i18n="anyRisk"></option><option value="low" data-i18n="lowRisk"></option><option value="medium" data-i18n="medRisk"></option></select></label>
+  <label class="row"><input id="fLoss" type="checkbox"><span data-i18n="showLoss"></span></label>
+  <button id="fReset" data-i18n="resetF"></button>
+</div>
+<main>
+<section id="view-dashboard" class="view active">
+  <h1 data-i18n="dashboard"></h1>
+  <div id="statusRow" class="cards"></div>
+  <div id="statCards" class="cards"></div>
+  <details class="help" open><summary data-i18n="helpTitle"></summary><div class="helpbody" data-i18n="helpBody"></div></details>
+</section>
+<section id="view-ranking" class="view">
+  <h1 data-i18n="ranking"></h1>
+  <div class="filters"><select id="fCategory"><option value="" data-i18n="allCat"></option><option value="Bazaar">Bazaar</option><option value="Auction House">Auction House</option><option value="Bits">Bits</option></select></div>
+  <div id="tblRanking" class="tablewrap"></div>
+</section>
+<section id="view-bazaar" class="view"><h1 data-i18n="bazaar"></h1>
+  <p class="muted small" data-i18n="helpBazaar"></p>
+  <div class="filters">
+    <span class="muted small" data-i18n="buyHow"></span>
+    <div class="seg" id="bzBuy"><button data-v="any" data-i18n="anyM"></button><button data-v="instant" data-i18n="buyInstant"></button><button data-v="order" class="active" data-i18n="buyOrder"></button></div>
+    <span class="muted small" data-i18n="sellHow"></span>
+    <div class="seg" id="bzSell"><button data-v="any" data-i18n="anyM"></button><button data-v="instant" data-i18n="sellInstant"></button><button data-v="offer" class="active" data-i18n="sellOfferB"></button></div>
+    <div class="seg" id="bzMode"><button data-mode="cards" class="active" data-i18n="cards"></button><button data-mode="table" data-i18n="table"></button></div>
+  </div>
+  <p id="instantNote" class="notice" data-i18n="instantNote" hidden></p>
+  <div id="tblBazaar"></div></section>
+<section id="view-popular" class="view"><h1 data-i18n="popular"></h1><p class="muted small" data-i18n="helpPopular"></p><div id="tblPopular" class="tablewrap"></div></section>
+<section id="view-auction" class="view"><h1 data-i18n="auction"></h1>
+  <p class="notice" data-i18n="auctionNotice"></p><div id="tblAuction" class="tablewrap"></div></section>
+<section id="view-bits" class="view"><h1 data-i18n="bits"></h1><p class="muted small" data-i18n="bitsNote"></p>
+  <div class="filters"><input id="bitsSearch" data-i18n-ph="bitsSearch">
+    <div class="seg" id="bitsMode"><button data-mode="cards" class="active" data-i18n="cards"></button><button data-mode="table" data-i18n="table"></button></div></div>
+  <div id="tblBits"></div></section>
+<section id="view-settings" class="view"><h1 data-i18n="settings"></h1>
+  <div class="grid2">
+    <form class="card" onsubmit="return false" id="setForm">
+      <h3 data-i18n="settingsH"></h3>
+      <label><span data-i18n="setInterval"></span><input id="setInterval" type="number" min="30"></label>
+      <label><span data-i18n="setMinProfit"></span><input id="setMinProfit" type="number"></label>
+      <label><span data-i18n="setMinRoi"></span><input id="setMinRoi" type="number"></label>
+      <label><span data-i18n="setMinVol"></span><input id="setMinVol" type="number" min="0"></label>
+      <label><span data-i18n="setMaxAge"></span><input id="setMaxAge" type="number" min="30"></label>
+      <label class="row"><input id="setAuction" type="checkbox"><span data-i18n="setAuction"></span></label>
+      <label class="row"><input id="setImages" type="checkbox"><span data-i18n="setImages"></span></label>
+      <h3 data-i18n="fees2"></h3>
+      <label><span data-i18n="setBzTax"></span><input id="setBzTax" type="number" step="0.01" min="0"></label>
+      <label><span data-i18n="setAhClaim"></span><input id="setAhClaim" type="number" step="0.01" min="0"></label>
+      <label><span data-i18n="setAhCap"></span><input id="setAhCap" type="number" min="0"></label>
+      <label><span data-i18n="theme"></span><select id="setTheme"><option value="dark" data-i18n="themeDark"></option><option value="midnight" data-i18n="themeMid"></option></select></label>
+      <button id="saveSettings" class="primary" data-i18n="save"></button>
+    </form>
+    <div class="card"><h3 data-i18n="sources"></h3>
+      <p class="small muted">api.hypixel.net/v2/skyblock/bazaar<br>api.hypixel.net/v2/skyblock/auctions<br><span data-i18n="sourcesTxt"></span></p>
+      <h3 data-i18n="localData"></h3><button id="resetAll" class="danger" data-i18n="resetAll"></button>
+    </div>
+  </div>
+</section>
+<section id="view-admin" class="view"><h1 data-i18n="admin"></h1>
+  <form id="adminLogin" class="card" onsubmit="return false">
+    <h3 data-i18n="admLogin"></h3>
+    <p class="small muted" data-i18n="admLoginNote"></p>
+    <label><span data-i18n="admTokenL"></span><input id="admTokenIn" type="password" autocomplete="off"></label>
+    <div class="row"><label><span data-i18n="admOwner"></span><input id="admOwner"></label><label><span data-i18n="admRepo"></span><input id="admRepo"></label><label><span data-i18n="admBranch"></span><input id="admBranch" value="main"></label></div>
+    <button id="admLoginBtn" class="primary" data-i18n="admLoginBtn"></button>
+  </form>
+  <div id="adminPanel" hidden>
+    <div class="row wrap"><strong id="admUser"></strong><button id="admLogout" data-i18n="admLogout"></button>
+      <button id="admPublish" class="primary" data-i18n="admPublish"></button><span id="admDirty" class="tag medium" hidden data-i18n="admDirty"></span></div>
+    <h3 data-i18n="admItemsH"></h3><p class="small muted" data-i18n="admItemsNote"></p>
+    <div class="filters"><input id="admSearch" data-i18n-ph="admSearch"><select id="admCat"><option value="" data-i18n="allCat"></option><option value="Bazaar">Bazaar</option><option value="Auction House">Auction House</option></select>
+      <button id="admShowAll" data-i18n="admShowAll"></button><button id="admHideAll" data-i18n="admHideAll"></button></div>
+    <div id="admItems" class="card admlist"></div>
+    <h3 data-i18n="admBitsH"></h3><p class="small muted" data-i18n="admBitsNote"></p>
+    <div id="admBits" class="tablewrap"></div>
+    <div class="filters">
+      <label><span data-i18n="admId"></span><input id="abId"></label><label><span data-i18n="admName"></span><input id="abName"></label>
+      <label><span data-i18n="admBits"></span><input id="abBits" type="number" min="1"></label>
+      <label><span data-i18n="admSource"></span><select id="abSource"><option value="bazaar">bazaar</option><option value="ah">ah</option></select></label>
+      <label><span data-i18n="admAhName"></span><input id="abAh"></label><button id="abAdd" data-i18n="admAdd"></button>
+    </div>
+    <h3 data-i18n="admImgH"></h3><p class="small muted" data-i18n="admImgNote"></p><input id="admImg" class="wide">
+  </div>
+</section>
+</main>
+</div>
+<div id="hbar" hidden><div id="hbarInner"></div></div>
+<div id="toasts"></div>
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
